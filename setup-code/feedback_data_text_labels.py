@@ -32,9 +32,13 @@ def main():
     # CREATE DATAFRAME WITH TRAINING ID AND TEXT
     train_names, train_texts = [], []
     print('Starting to process training ids and text.')
+    
     for f in tqdm(list(os.listdir('../feedback-prize-2021/train'))):
         train_names.append(f.replace('.txt', ''))
-        train_texts.append(open('../feedback-prize-2021/train/' + f, 'r').read())
+        train_texts.append(
+            open('../feedback-prize-2021/train/' + f, 'r').read()
+            )
+    
     train_texts = pd.DataFrame({'id': train_names, 'text': train_texts})
     print('Training ids and text finished processing.', '\n')
 

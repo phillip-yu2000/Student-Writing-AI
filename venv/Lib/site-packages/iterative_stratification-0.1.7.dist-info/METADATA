@@ -1,0 +1,22 @@
+Metadata-Version: 2.1
+Name: iterative-stratification
+Version: 0.1.7
+Summary: Package that provides scikit-learn compatible cross validators with stratification for multilabel data
+Home-page: https://github.com/trent-b/iterative-stratification
+Maintainer: Trent J. Bradberry
+Maintainer-email: trentjason@hotmail.com
+License: BSD 3
+Download-URL: https://github.com/trent-b/iterative-stratification
+Platform: UNKNOWN
+Classifier: Intended Audience :: Science/Research
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python
+Classifier: Topic :: Software Development
+Classifier: Topic :: Scientific/Engineering
+License-File: LICENSE
+Requires-Dist: numpy
+Requires-Dist: scipy
+Requires-Dist: scikit-learn
+
+This iterative-stratification project offers implementations of MultilabelStratifiedKFold, MultilabelRepeatedStratifiedKFold, and MultilabelStratifiedShuffleSplit with a base algorithm for stratifying multilabel data described in the following paper: Sechidis K., Tsoumakas G., Vlahavas I. (2011) On the Stratification of Multi-Label Data. In: Gunopulos D., Hofmann T., Malerba D., Vazirgiannis M. (eds) Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2011. Lecture Notes in Computer Science, vol 6913. Springer, Berlin, Heidelberg.
+

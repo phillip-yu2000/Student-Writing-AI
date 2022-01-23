@@ -20,13 +20,13 @@ def main():
     )
 
     # SAVE TOKENIZER, CONFIGURATION, AND MODEL
-    os.mkdir('longformer')
+    os.mkdir('../longformer')
     
-    tokenizer.save_pretrained('longformer')
+    tokenizer.save_pretrained('../longformer')
     
-    config_model.save_pretrained('longformer')
+    config_model.save_pretrained('../longformer')
     
-    model.save_pretrained('longformer')
+    model.save_pretrained('../longformer')
 
 if __name__ == '__main__':
     main()

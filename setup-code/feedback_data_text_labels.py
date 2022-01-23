@@ -15,26 +15,26 @@ def main():
     '''
     
     # CREATE DIRECTORY IF NOT EXISTS
-    if not os.path.exists(r'preprocessed'):
-        os.mkdir('preprocessed')
+    if not os.path.exists('../preprocessed'):
+        os.mkdir('../preprocessed')
 
     # IMPORT DATA
-    train_df = pd.read_csv(r'feedback-prize-2021\train.csv')
+    train_df = pd.read_csv('../feedback-prize-2021/train.csv')
 
     # CREATE DATAFRAME WITH TEST ID AND TEXT
     test_names, test_texts = [], []
-    for f in list(os.listdir(r'feedback-prize-2021\test')):
+    for f in list(os.listdir('../feedback-prize-2021/test')):
         test_names.append(f.replace('.txt', ''))
-        test_texts.append(open('feedback-prize-2021/test/' + f, 'r').read())
+        test_texts.append(open('../feedback-prize-2021/test/' + f, 'r').read())
     test_texts = pd.DataFrame({'id': test_names, 'text':test_texts})
-    test_texts.to_csv(r'preprocessed\test_texts.csv', index=False)
+    test_texts.to_csv('../preprocessed/test_texts.csv', index=False)
 
     # CREATE DATAFRAME WITH TRAINING ID AND TEXT
     train_names, train_texts = [], []
     print('Starting to process training ids and text.')
-    for f in tqdm(list(os.listdir(r'feedback-prize-2021\train'))):
+    for f in tqdm(list(os.listdir('../feedback-prize-2021/train'))):
         train_names.append(f.replace('.txt', ''))
-        train_texts.append(open('feedback-prize-2021/train/' + f, 'r').read())
+        train_texts.append(open('../feedback-prize-2021/train/' + f, 'r').read())
     train_texts = pd.DataFrame({'id': train_names, 'text': train_texts})
     print('Training ids and text finished processing.', '\n')
 
@@ -62,7 +62,7 @@ def main():
         all_entities.append(entities)
     
     train_texts['entities'] = all_entities
-    train_texts.to_csv(r'preprocessed\train_NER.csv',index=False)
+    train_texts.to_csv(r'../preprocessed/train_NER.csv',index=False)
     print('Training labels finished processing and saved.')
 
 

@@ -32,6 +32,8 @@ config = {'model_name': 'allenai/longformer-base-4096',
          'max_grad_norm':10,
          'device': torch.device("cuda" if torch.cuda.is_available() else "cpu")}
 
+print('GPU detected') if torch.cuda.is_available() else print('GPU not detected')
+
 # CREATE DICTIONARIES THAT WE CAN USE DURING TRAIN AND INFER
 output_labels = ['O', 'B-Lead', 'I-Lead', 'B-Position', 'I-Position', 
                  'B-Claim', 'I-Claim', 'B-Counterclaim', 'I-Counterclaim', 

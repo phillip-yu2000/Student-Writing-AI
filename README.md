@@ -7,10 +7,8 @@ Portions of code are adapted from:<br>
 https://www.kaggle.com/cdeotte/pytorch-bigbird-ner-cv-0-615 <br>
 https://www.kaggle.com/abhishek/creating-folds-properly-hopefully-p
 
-Longformer Citation:
-@article{Beltagy2020Longformer,
-  title={Longformer: The Long-Document Transformer},
-  author={Iz Beltagy and Matthew E. Peters and Arman Cohan},
-  journal={arXiv:2004.05150},
-  year={2020},
-}
+## References
+<a id="1">[1]</a> 
+Iz Beltagy and Matthew E. Peters and Arman Cohan (2020). 
+Longformer: The Long-Document Transformer. 
+arXiv:2004.05150.

@@ -24,8 +24,8 @@ LABEL_ALL_SUBTOKENS = True
 
 config = {'model_name': 'allenai/longformer-base-4096',   
          'max_length': 1024,
-         'train_batch_size':4,
-         'valid_batch_size':4,
+         'train_batch_size':2,
+         'valid_batch_size':2,
          'epochs':1,
          'learning_rates': [2.5e-5, 2.5e-5, 2.5e-6, 2.5e-6, 2.5e-7],
          'max_grad_norm':10,

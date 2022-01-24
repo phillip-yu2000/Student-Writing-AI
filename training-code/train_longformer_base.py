@@ -46,7 +46,7 @@ train_df = pd.read_csv('../feedback-prize-2021/train.csv')
 train_fold = pd.read_csv('../preprocessed/train_folds.csv')
 train_fold = train_fold[['id', 'kfold']] 
 
-test_texts = pd.read_csv('../preprocessed/test_text.csv')
+test_texts = pd.read_csv('../preprocessed/test_texts.csv')
 train_texts = pd.read_csv('../preprocessed/train_NER.csv')
 
 # PANDAS STORES AS STRING NEED TO CONVERT IT TO OBJECT DTYPE

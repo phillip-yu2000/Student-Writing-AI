@@ -124,6 +124,7 @@ valid_params = {'batch_size': config['valid_batch_size'],
                 'pin_memory':True
                 }
 
+# LOAD TOKENIZER
 tokenizer = AutoTokenizer.from_pretrained(DOWNLOADED_MODEL_PATH)
 
 def train(epoch):

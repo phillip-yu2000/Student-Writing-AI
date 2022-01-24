@@ -29,7 +29,7 @@ config = {'model_name': 'allenai/longformer-base-4096',
          'epochs':1,
          'learning_rates': [2.5e-5, 2.5e-5, 2.5e-6, 2.5e-6, 2.5e-7],
          'max_grad_norm':10,
-         'device': torch.device("cuda" if torch.cuda.is_available() else "cpu")}
+         'device': torch.device("cpu")}
 
 # CREATE DICTIONARIES THAT WE CAN USE DURING TRAIN AND INFER
 output_labels = ['O', 'B-Lead', 'I-Lead', 'B-Position', 'I-Position', 

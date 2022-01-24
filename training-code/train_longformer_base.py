@@ -134,6 +134,9 @@ def train(epoch):
     
     # MODEL IN TRAINING MODE
     model.train()
+    
+    # START TIMER
+    t0 = time.time()
 
     for idx, batch in enumerate(training_loader):
 
@@ -150,9 +153,13 @@ def train(epoch):
         nb_tr_examples += labels.size(0)
 
         # PROGRESS TRACKER PRINTED TO OUTPUT
-        if idx % 200 == 0:
+        if idx % 100 == 0:
             loss_step = tr_loss/nb_tr_steps
-            print(f"Training loss after {idx:04d} training steps: {loss_step}")
+            time_step = (time.time() - t0)/nb_tr_steps
+            print(
+                f"Training loss after {idx:04d} training steps: {loss_step:.4f}",
+                f"\t {time_step:.4f} sec/step"
+            )
 
         # COMPUTE TRAINING ACCURACY
         flattened_targets = labels.view(-1) # shape (batch_size * seq_len,)

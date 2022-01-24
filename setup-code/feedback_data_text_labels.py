@@ -35,9 +35,7 @@ def main():
     
     for f in tqdm(list(os.listdir('../feedback-prize-2021/train'))):
         train_names.append(f.replace('.txt', ''))
-        train_texts.append(
-            open('../feedback-prize-2021/train/' + f, 'r').read()
-            )
+        train_texts.append(open('../feedback-prize-2021/train/' + f, 'r').read())
     
     train_texts = pd.DataFrame({'id': train_names, 'text': train_texts})
     print('Training ids and text finished processing.', '\n')
@@ -61,12 +59,20 @@ def main():
                 try:
                     entities[k] = f"I-{discourse}"
                 except IndexError:
-                    entities.append(f"I-{discourse}")
+                    print('\n')
+                    print(IndexError)
+                    print('Essay ID:', i[1]['id'])
+                    print('Label Size:', total)
+                    print('Prediction Sting:', list_ix)
+                    print('Index that raised error:', k)
+                    print('Essay split into a list:', i[1]['text'].split())
+                    raise
+
         
         all_entities.append(entities)
     
     train_texts['entities'] = all_entities
-    train_texts.to_csv(r'../preprocessed/train_NER.csv',index=False)
+    train_texts.to_csv('../preprocessed/train_NER.csv',index=False)
     print('Training labels finished processing and saved.')
 
 

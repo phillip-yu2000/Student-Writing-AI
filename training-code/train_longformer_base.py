@@ -27,8 +27,8 @@ config = {'model_name': 'allenai/longformer-base-4096',
          'max_length': 1024,
          'train_batch_size':2,
          'valid_batch_size':2,
-         'epochs':1,
-         'learning_rates': [2.5e-5, 2.5e-5, 2.5e-6, 2.5e-6, 2.5e-7],
+         'epochs':6,
+         'learning_rates': [2.5e-5, 2.5e-5, 2.5e-6, 2.5e-6, 2.5e-7, 2.5e-7],
          'max_grad_norm':10,
          'device': torch.device("cuda" if torch.cuda.is_available() else "cpu")}
 
@@ -155,7 +155,7 @@ def train(epoch):
         nb_tr_examples += labels.size(0)
 
         # PROGRESS TRACKER PRINTED TO OUTPUT
-        if idx % 100 == 0:
+        if idx % 200 == 0:
             loss_step = tr_loss/nb_tr_steps
             time_step = (time.time() - t0)/nb_tr_steps
             print(
@@ -365,7 +365,10 @@ for nb_fold in range(len(folds_texts)):
         torch.cuda.empty_cache()
         gc.collect()
     
-    torch.save(model.state_dict(), f'longformer{nb_fold}_v{VER}.pt')
+    if not os.path.exists('../saved_models'):
+        os.makedirs('../saved_models')
+    
+    torch.save(model.state_dict(), f'../saved_models/longformer_base{nb_fold}_v{VER}.pt')
     
     # VALIDATION TARGETS
     valid = train_df.loc[train_df['id'].isin(folds_texts[nb_fold].id)]

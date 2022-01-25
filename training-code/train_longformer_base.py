@@ -15,21 +15,38 @@ from torch import cuda
 from sklearn.metrics import accuracy_score
 
 class FeedbackDataset(Dataset):
-    '''
-    PyTorch Dataset Class
-    '''
+    """PyTorch Dataset Class
+    
+    Standard Pytorch Dataset class can read more about it here:
+        https://pytorch.org/tutorials/beginner/basics/data_tutorial.html
+
+    Attributes: 
+        data: A pandas dataframe with id, text, and NER entities.
+        len: The length of the dataframe. 
+        tokenizer: Encodes text into tokens.
+        max_len: Maximum length of tokens.
+    """ 
+    
     def __init__(self, dataframe, tokenizer, max_len):
+        """Inits FeedbackDataset Class with data, tokenizer, and max length."""
+
         self.data = dataframe
         self.len = len(dataframe)
         self.tokenizer = tokenizer
         self.max_len = max_len
+
+    def __len__(self):
+        """Simple function that returns length of data."""
         
+        return self.len
+    
     def __getitem__(self, index):
-        # GETS TEXT AND WORD LABELS
+        """Gets input ids, attention mask, labels, word ids as tensors."""
+        
         text = self.data.text.iloc[index]
         word_labels = self.data.entities.iloc[index]
         
-        # TOKENIZE TEXT
+        # Tokenize text.
         encoding = self.tokenizer(text.split(),
                                  is_split_into_words = True,
                                  padding = 'max_length',
@@ -38,7 +55,7 @@ class FeedbackDataset(Dataset):
                                  )
         word_ids = encoding.word_ids()
         
-        # CREATE LABELS
+        # Create labels.
         previous_word_idx = None
         label_ids = []
         for word_idx in word_ids:
@@ -55,24 +72,23 @@ class FeedbackDataset(Dataset):
             previous_word_idx = word_idx
         encoding['labels'] = label_ids
         
-        # CONVERT TO TORCH TENSORS
+        # Convert items to torch tensors.
         item = {key: torch.as_tensor(val) for key, val in encoding.items()}
         word_ids = [w if w is not None else -1 for w in word_ids]
         item['wids'] = torch.as_tensor(word_ids)
         
         return item
-    
-    def __len__(self):
-        return self.len
 
 def train(epoch):
+    """A function to train model."""
+    
     tr_loss, tr_accuracy = 0, 0
     nb_tr_examples, nb_tr_steps = 0, 0
     
-    # MODEL IN TRAINING MODE
+    # Set model to training mode.
     model.train()
     
-    # START TIMER
+    # Start timer.
     t0 = time.time()
 
     for idx, batch in enumerate(training_loader):
@@ -89,7 +105,7 @@ def train(epoch):
         nb_tr_steps += 1
         nb_tr_examples += labels.size(0)
 
-        # PROGRESS TRACKER PRINTED TO OUTPUT
+        # Progress tracker printed to output.
         if idx % 200 == 0:
             loss_step = tr_loss/nb_tr_steps
             time_step = (time.time() - t0)/nb_tr_steps
@@ -98,7 +114,7 @@ def train(epoch):
                 f"\t {time_step:.4f} sec/step"
             )
 
-        # COMPUTE TRAINING ACCURACY
+        # Compute Accuracy.
         flattened_targets = labels.view(-1) # shape (batch_size * seq_len,)
         active_logits = tr_logits.view(-1, model.num_labels) # shape (batch_size * seq_len, num_labels)
         flattened_predictions = torch.argmax(active_logits, axis=1) # shape (batch_size * seq_len,)
@@ -110,12 +126,12 @@ def train(epoch):
         tmp_tr_accuracy = accuracy_score(labels.cpu().numpy(), predictions.cpu().numpy())
         tr_accuracy += tmp_tr_accuracy
 
-        # GRADIENT CLIPPING
+        # Gradient Clipping.
         torch.nn.utils.clip_grad_norm_(
             parameters=model.parameters(), max_norm=config['max_grad_norm']
         )
 
-        # BACKWARDS PASS
+        # Backwards Pass. 
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -126,14 +142,15 @@ def train(epoch):
     print(f"Training accuracy epoch: {tr_accuracy}")
 
 def inference(batch):
-                
-    # MOVE BATCH TO GPU AND INFER
+    """A helper function to make predictions on batches."""
+
+    # Move batch to GPU and make prediction.
     ids = batch["input_ids"].to(config['device'])
     mask = batch["attention_mask"].to(config['device'])
     outputs = model(ids, attention_mask=mask, return_dict=False)
     all_preds = torch.argmax(outputs[0], axis=-1).cpu().numpy() 
 
-    # INTERATE THROUGH EACH TEXT AND GET PRED
+    # Iterate through each text and get prediction.
     predictions = []
     for k,text_preds in enumerate(all_preds):
         token_preds = [ids_to_labels[i] for i in text_preds]
@@ -152,11 +169,12 @@ def inference(batch):
     return predictions
 
 def get_predictions(df, loader):
-    
-    # put model in training mode
+    """A function to get predictions on data."""
+
+    # Put model in evaluation mode.
     model.eval()
     
-    # GET WORD LABEL PREDICTIONS
+    # Get word label predictions.
     y_pred2 = []
     for batch in loader:
         labels = inference(batch)
@@ -166,7 +184,7 @@ def get_predictions(df, loader):
     for i in range(len(df)):
 
         idx = df.id.values[i]
-        pred = y_pred2[i] # Leave "B" and "I"
+        pred = y_pred2[i] # leave "B" and "I"
         preds = []
         j = 0
         while j < len(pred):
@@ -182,14 +200,16 @@ def get_predictions(df, loader):
                                      ' '.join(map(str, list(range(j, end))))))
         
             j = end
-        
+
+    # Create dataframe with Out-Of-Fold predictions (oof).   
     oof = pd.DataFrame(final_preds2)
     oof.columns = ['id','class','predictionstring']
 
     return oof
 
 def calc_overlap(row):
-    """
+    """A function used for evaluation.
+
     Calculates the overlap between prediction and
     ground truth and overlap percentages used for determining
     true positives.
@@ -206,19 +226,19 @@ def calc_overlap(row):
 
 
 def score_feedback_comp(pred_df, gt_df):
-    """
-    A function that scores for the kaggle
-        Student Writing Competition
+    """A function that scores for the kaggle Student Writing Competition.
         
     Uses the steps in the evaluation page here:
         https://www.kaggle.com/c/feedback-prize-2021/overview/evaluation
     """
+
     gt_df = gt_df[['id','discourse_type','predictionstring']] \
         .reset_index(drop=True).copy()
     pred_df = pred_df[['id','class','predictionstring']] \
         .reset_index(drop=True).copy()
     pred_df['pred_id'] = pred_df.index
     gt_df['gt_id'] = gt_df.index
+    
     # Step 1. all ground truths and predictions for a given class are compared.
     joined = pred_df.merge(gt_df,
                            left_on=['id','class'],
@@ -256,7 +276,7 @@ def score_feedback_comp(pred_df, gt_df):
     TP = len(tp_pred_ids)
     FP = len(fp_pred_ids)
     FN = len(unmatched_gt_ids)
-    #calc microf1
+    
     my_f1_score = TP / (TP + 0.5*(FP+FN))
     return my_f1_score
 

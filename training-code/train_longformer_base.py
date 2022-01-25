@@ -280,19 +280,20 @@ def score_feedback_comp(pred_df, gt_df):
     my_f1_score = TP / (TP + 0.5*(FP+FN))
     return my_f1_score
 
-# RID WARNINGS IN DATASET CLASS WHEN USING TOKENIZER BEFORE FORKS
+
+########## CODE THAT TRAINS THE MODEL ##########
+
+
+# Gets rid of warnings in the Dataset Class when using tokenizer before forks.
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-# PATH TO PREVIOUSLY DOWNLOADED PRETRAINED MODEL
 DOWNLOADED_MODEL_PATH = '../longformer-base-4096'
-
-# SET VERSION NUMBER
-VER = 1
-
-# LABELING ALL TOKENS
 LABEL_ALL_SUBTOKENS = True
 
-# DESCRIBE MODEL CONFIGURATIONS
+# Set desired version number of trained model.
+VER = 1
+
+# Describe training configurations.
 config = {'model_name': 'allenai/longformer-base-4096',   
          'max_length': 1024,
          'train_batch_size':2,
@@ -304,35 +305,34 @@ config = {'model_name': 'allenai/longformer-base-4096',
 
 print('GPU detected') if torch.cuda.is_available() else print('GPU not detected')
 
-# CREATE DICTIONARIES USED DURING TRAINING AND INFERENCE
-# STARTING WITH LIST OF OUTPUTS
+# Create dictionary that map an output label to a number.
 output_labels = ['O', 'B-Lead', 'I-Lead', 'B-Position', 'I-Position', 
                  'B-Claim', 'I-Claim', 'B-Counterclaim', 'I-Counterclaim', 
                  'B-Rebuttal', 'I-Rebuttal', 'B-Evidence', 'I-Evidence', 
                  'B-Concluding Statement', 'I-Concluding Statement']
-# CREATING DICTIONARIES THAT MAP OUTPUT LABELS TO NUMBERS
+
 labels_to_ids = {v:k for k,v in enumerate(output_labels)}
 ids_to_labels = {k:v for k,v in enumerate(output_labels)}
 
-
-# LOAD DATA GENERATED FROM SETUP-CODE
+# Import data generated from set-up code.
 train_df = pd.read_csv('../feedback-prize-2021/train.csv')
 train_fold = pd.read_csv('../preprocessed/train_folds.csv')
 test_texts = pd.read_csv('../preprocessed/test_texts.csv')
 train_texts = pd.read_csv('../preprocessed/train_NER.csv')
-# ONLY ID AND KFOLDS ARE USED, REDUCE TO SAVE MEMORY
+
 train_fold = train_fold[['id', 'kfold']] 
-# PANDAS STORES OUR LABELS AS A STRING NEED TO CONVERT INTO LIST DTYPE
+
+# Pandas stores labels as a string need to convert into a list dtype.
 train_texts.entities = train_texts.entities.apply(lambda x: literal_eval(x))
 
-# CREATE LIST OF DATAFRAMES INDEXED BY THE FOLD NUMBER
+# Creates a list of dataframes indexed by the fold number.
 folds_texts = []
+
 for fold_num in range(len(train_fold.kfold.unique())):
     fold = train_fold[train_fold.kfold == fold_num]
     fold_texts = train_texts.loc[train_texts['id'].isin(fold['id'])]
     folds_texts.append(fold_texts)
 
-# TRAIN AND VALID PARAMETERS
 train_params = {'batch_size': config['train_batch_size'],
                 'shuffle': True,
                 'num_workers': 2,
@@ -345,14 +345,14 @@ valid_params = {'batch_size': config['valid_batch_size'],
                 'pin_memory':True
                 }
 
-# LOAD PRETRAINED TOKENIZER
 tokenizer = AutoTokenizer.from_pretrained(DOWNLOADED_MODEL_PATH)
 
-# CREATE TRAIN AND VALID DATASET
+
+# TRAINING LOOP WITH K-FOLD CROSS VALIDATION.
 for nb_fold in range(len(folds_texts)):
     print(f"### Training Fold: {nb_fold + 1} out of {len(folds_texts)} ###")
     
-    # CREATE MODEL FROM DOWNLOADED PATH
+    # Load blank pre-trained model for each fold.
     config_model = AutoConfig.from_pretrained(DOWNLOADED_MODEL_PATH+'/config.json')
     model = AutoModelForTokenClassification.from_pretrained(
         DOWNLOADED_MODEL_PATH+'/pytorch_model.bin', config = config_model
@@ -362,7 +362,7 @@ for nb_fold in range(len(folds_texts)):
         params = model.parameters(), lr = config['learning_rates'][0]
     )
 
-    # FOLD WILL BE VALIDATION THE REST ARE TRAINING
+    # Create validation set and training set.
     validation_set = FeedbackDataset(
         folds_texts[nb_fold], tokenizer, config['max_length']
     )
@@ -371,10 +371,11 @@ for nb_fold in range(len(folds_texts)):
         tokenizer, config['max_length']
     )
 
-    # BATCH SAMPLES USING PYTORCH DATALOADER
+    # Batch samples using PyTorch DataLoder
     validation_loader = DataLoader(validation_set, **valid_params)
     training_loader = DataLoader(training_set, **train_params)
     
+    # LOOP FOR EACH EPOCH FOR EACH FOLD.
     for epoch in range(config['epochs']):
         print(f"## Training epoch: {epoch + 1}")
         
@@ -388,18 +389,19 @@ for nb_fold in range(len(folds_texts)):
         torch.cuda.empty_cache()
         gc.collect()
     
+    # Save model for each fold after all epochs for that fold have been run.
     if not os.path.exists('../saved_models'):
         os.makedirs('../saved_models')
     
     torch.save(model.state_dict(), f'../saved_models/longformer_base{nb_fold}_v{VER}.pt')
     
-    # VALIDATION TARGETS
+    # Create validation target.
     valid = train_df.loc[train_df['id'].isin(folds_texts[nb_fold].id)]
     
-    # Out-Of-Fold (OOF) PREDICTIONS
+    # Out-Of-Fold (OOF) predictions
     oof = get_predictions(folds_texts[nb_fold], validation_loader)
     
-    # COMPUTE F1 SCORE
+    # Compute f1 score.
     f1s = []
     CLASSES = oof['class'].unique()
     print()

@@ -347,7 +347,6 @@ valid_params = {'batch_size': config['valid_batch_size'],
 
 tokenizer = AutoTokenizer.from_pretrained(DOWNLOADED_MODEL_PATH)
 
-
 # TRAINING LOOP WITH K-FOLD CROSS VALIDATION.
 for nb_fold in range(len(folds_texts)):
     print(f"### Training Fold: {nb_fold + 1} out of {len(folds_texts)} ###")
